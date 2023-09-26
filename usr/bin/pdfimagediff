@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# START OF : Functions
+
+# Function to get the page count of a PDF file
+get_page_count() {
+    local pdf_file="$1"
+    local page_count=$(pdfinfo "$pdf_file" | grep -oP "Pages:\s+\K\d+")
+    echo "$page_count"
+}
+
+# Function to split a PDF into PNG images
+split_pdf_to_png() {
+    local pdf_file="$1"
+    local output_dir="$2"
+    
+    mkdir -p "$output_dir"
+
+    pdftoppm -r 400 -png "$pdf_file" "$output_dir/page"
+}
+
+# Function to perform image comparison with tolerance
+compare_images_with_tolerance() {
+    local dir1="$1"
+    local dir2="$2"
+    local output_dir="$3"
+    local tolerance="$4"
+
+    mkdir -p "$output_dir"
+
+    for file1 in "$dir1"/*.png; do
+        file2="$dir2/$(basename "$file1")"
+        output_file="$output_dir/$(basename "$file1")"
+
+        compare -metric AE -fuzz "${tolerance}%" "$file1" "$file2" "$output_file"
+    done
+}
+
+# Combine images into PDFs
+combine_images_to_pdf() {
+    local input_dir="$1"
+    local output_dir="$2"
+    
+    mkdir -p "$output_dir"
+    
+    for dir in "$input_dir"/*; do
+        # Check if the entry is a directory
+        if [ -d "$dir" ]; then
+            pdf_file="$output_dir/$(basename "$dir").pdf"
+            convert "$dir"/*.png "$pdf_file"
+        fi
+    done
+}
+
+# Open all PDFs in the "diff-pdf" directory
+open_pdfs() {
+    local pdf_dir="$1"
+    
+    for pdf_file in "$pdf_dir"/*.pdf; do
+        # Check if the entry is a file
+        if [ -f "$pdf_file" ]; then
+            # Define the window size (replace with your desired dimensions)
+            xdg-open "$pdf_file"
+        fi
+    done
+}
+
+# END OF : Functions
+
+# Dialog to select the PDFs
+pdf1_file=$(zenity --file-selection --title="Select the first PDF")
+pdf2_file=$(zenity --file-selection --title="Select the second PDF")
+
+for pdf_file in "$pdf1_file" "$pdf2_file"; do
+    if [ -z "$pdf_file" ]; then
+        exit 0
+    fi
+done
+
+# Create a temporary folder
+timestamp=$(date +%Y%m%d%H%M%S)
+temp_dir="/tmp/PDFImageDiff_$timestamp"
+src_png_dir="$temp_dir/src-png"
+diff_png_dir="$temp_dir/diff-png"
+
+mkdir -p "$src_png_dir" "$diff_png_dir"
+
+# Split the PDFs into PNG images
+split_pdf_to_png "$pdf1_file" "$src_png_dir/1"
+split_pdf_to_png "$pdf2_file" "$src_png_dir/2"
+
+# Perform image comparison with different tolerances
+tolerances=(0 25 50 80 90 95 99)
+for tolerance in "${tolerances[@]}"; do
+    compare_images_with_tolerance "$src_png_dir/1" "$src_png_dir/2" "$diff_png_dir/$tolerance" $tolerance
+done
+
+# Combine the images into PDFs in the "diff-pdf" directory
+combine_images_to_pdf "$diff_png_dir" "$temp_dir/diff-pdf"
+
+# Open all PDFs in the "diff-pdf" directory
+open_pdfs "$temp_dir/diff-pdf"
+
+# Display a completion message
+zenity --info --text="Image comparison completed. Results are saved in $temp_dir"
+
+# Open the results folder
+xdg-open "$temp_dir"
+
+exit 0

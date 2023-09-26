@@ -1,0 +1,8 @@
+Package: lightdm-dynamic
+Version: 0.0.1
+Architecture: all
+Maintainer: rept0id <rad@simplecode.gr>
+Description: Dynamic background switcher for LightDM
+Scripts:
+ postinst
+ prerm
