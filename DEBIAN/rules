@@ -4,5 +4,5 @@
     dh $@
 
 override_dh_install:
-    dh_install --exclude=screenshot.png,LICENSE,README.md,.git
+    dh_install --exclude=screenshot.png,LICENSE,README.md,.git,TEST
 
