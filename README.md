@@ -16,6 +16,6 @@ For Debian-based systems:
 ## Packaging Process
 
 Execute the following command:
-`sudo bash ./package.sh`
+`sudo bash ./packaging.sh`
 
 Within the "package" folder, you will discover the packaging wrappers and if you run packaging script, the packages themselves.
