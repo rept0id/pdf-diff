@@ -4,7 +4,9 @@
 
 ## How to Use
 
-Following installation, simply execute PDF-Image-Diff. You will be prompted to select the initial PDF and the subsequent PDF for comparison. Wait some seconds. Upon completion of the comparison, seven PDFs will open, each reflecting varying levels of difference tolerance. Select the one that best aligns with your preferences.
+Following installation, simply execute PDF-Image-Diff. 
+
+You will be prompted to select the initial PDF and the subsequent PDF for comparison. Wait some seconds. Upon completion of the comparison, seven PDFs will open, each reflecting varying levels of difference tolerance. Select the one that best aligns with your preferences.
 
 ## Installation Instructions
 
