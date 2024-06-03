@@ -47,7 +47,9 @@ combine_images_to_pdf() {
         # Check if the entry is a directory
         if [ -d "$dir" ]; then
             pdf_file="$output_dir/$(basename "$dir").pdf"
-            convert "$dir"/*.png "$pdf_file"
+            
+            # Convert all PNG images in the directory to a single PDF
+            img2pdf --output "$pdf_file" "$dir"/*.png
         fi
     done
 }
