@@ -1,9 +1,9 @@
 Package: pdf-image-diff
-Version: 0.0.2
+Version: 0.0.3
 Architecture: all
 Maintainer: rept0id <rad@simplecode.gr>
 Description: Compare PDF files with the strength of the Linux ecosystem
-Depends: img2pdf
+Depends: img2pdf, zenity, imagemagick
 Scripts:
  postinst
  prerm

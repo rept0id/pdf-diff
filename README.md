@@ -11,7 +11,7 @@ You will be prompted to select the initial PDF and the subsequent PDF for compar
 ## Installation Instructions
 
 For Debian-based systems:
-`sudo apt-get install ./pdf-image-diff.deb`
+`sudo apt-get install ./dist/deb/pdf-image-diff.deb`
 
 ## Dependencies
 
@@ -20,6 +20,6 @@ For Debian-based systems:
 ## Packaging Process
 
 Execute the following command:
-`sudo bash ./packaging.sh`
+`make build_deb`
 
 Within the "package" folder, you will discover the packaging wrappers and if you run packaging script, the packages themselves.
