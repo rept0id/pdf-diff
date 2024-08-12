@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# START OF : Functions
+### # # ###
+### # Functions # ###
+### # # ###
 
 # Function to get the page count of a PDF file
 get_page_count() {
@@ -67,11 +69,31 @@ open_pdfs() {
     done
 }
 
-# END OF : Functions
+### # # ###
+### # User Parameters # ###
+### # # ###
 
-# Dialog to select the PDFs
-pdf1_file=$(zenity --file-selection --title="Select the first PDF")
-pdf2_file=$(zenity --file-selection --title="Select the second PDF")
+# Dialogs to select the PDFs
+
+pdf1_file=$(zenity --file-selection --title="pdfimagediff : Select the first PDF")
+if [ $? -eq 1 ]; then
+    exit 1
+fi
+
+pdf2_file=$(zenity --file-selection --title="pdfimagediff : Select the second PDF")
+if [ $? -eq 1 ]; then
+    exit 1
+fi
+
+# Dialog to select tolerance
+tolerance=$(zenity --scale --title="pdfimagediff : Select Tolerance" --text="Choose the tolerance level:" --min-value=0 --max-value=100 --value=80)
+if [ $? -eq 1 ]; then
+    exit 1
+fi
+
+### # # ###
+### # Processing # ###
+### # # ###
 
 for pdf_file in "$pdf1_file" "$pdf2_file"; do
     if [ -z "$pdf_file" ]; then
@@ -85,28 +107,50 @@ temp_dir="/tmp/PDFImageDiff_$timestamp"
 src_png_dir="$temp_dir/src-png"
 diff_png_dir="$temp_dir/diff-png"
 
-mkdir -p "$src_png_dir" "$diff_png_dir"
+(
+    mkdir -p "$src_png_dir" "$diff_png_dir"
 
-# Split the PDFs into PNG images
-split_pdf_to_png "$pdf1_file" "$src_png_dir/1"
-split_pdf_to_png "$pdf2_file" "$src_png_dir/2"
+    # Split the PDFs into PNG images
+    split_pdf_to_png "$pdf1_file" "$src_png_dir/1"
+    split_pdf_to_png "$pdf2_file" "$src_png_dir/2"
 
-# Perform image comparison with different tolerances
-tolerances=(0 25 50 80 90 95 99)
-for tolerance in "${tolerances[@]}"; do
     compare_images_with_tolerance "$src_png_dir/1" "$src_png_dir/2" "$diff_png_dir/$tolerance" $tolerance
-done
 
-# Combine the images into PDFs in the "diff-pdf" directory
-combine_images_to_pdf "$diff_png_dir" "$temp_dir/diff-pdf"
+    # Combine the images into PDFs in the "diff-pdf" directory
+    combine_images_to_pdf "$diff_png_dir" "$temp_dir/diff-pdf"
 
-# Open all PDFs in the "diff-pdf" directory
-open_pdfs "$temp_dir/diff-pdf"
+) | zenity --progress \
+    --title="Processing" \
+    --text="Processing..." \
+    --pulsate \
+    --no-cancel \
+    --auto-close
 
-# Display a completion message
-zenity --info --text="Image comparison completed. Results are saved in $temp_dir"
+action=$(zenity --width=800 --height=600 --list --title="pdfimagediff : Select an Action" --text="Image comparison completed. \nResults are saved in $temp_dir.\n\nSelect an action" \
+    --radiolist --column="Select" --column="Action" \
+    TRUE "Open PDF and Folder" \
+    FALSE "Open PDF" \
+    FALSE "Open Folder" \
+    FALSE "Do Nothing")
 
-# Open the results folder
-xdg-open "$temp_dir"
+case $action in
+    "Open PDF and Folder")
+        open_pdfs "$temp_dir/diff-pdf"
+        sleep 3
+        xdg-open "$temp_dir"
+        ;;
+    "Open PDF")
+        open_pdfs "$temp_dir/diff-pdf"
+        ;;
+    "Open Folder")
+        xdg-open "$temp_dir"
+        ;;
+    "Do Nothing")
+        echo "No action selected."
+        ;;
+    *)
+        zenity --error --text="No valid option selected. Exiting."
+        ;;
+esac
 
 exit 0
