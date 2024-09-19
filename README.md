@@ -1,4 +1,4 @@
-# PDF-Image-Diff
+# pdf-diff
 
 ![screenshot](https://github.com/rept0id/pdf-image-diff/blob/main/doc/screenshots/screenshot.png)
 
